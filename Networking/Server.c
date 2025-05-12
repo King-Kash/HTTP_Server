@@ -1,9 +1,10 @@
 #include "Server.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct Server server_constructor(int domain, int service, int protocol, 
-    u_long interface, int port, int backlog, void (*launch)(void))
+    u_long interface, int port, int backlog, void (*launch) (struct Server *server))
 {
     struct Server server; //declare server
 
@@ -22,16 +23,16 @@ struct Server server_constructor(int domain, int service, int protocol,
     //service = socket stream (one char after next)
     //gives address for where socket is located
     server.socket = socket(domain, service, protocol);
-    if (server.socket == 0) {
-        perror("Failed to connect to socket...\n");
-        exit(1);
+    if (server.socket < 0) {
+        perror("Failed to connect to socket");
+        exit(EXIT_FAILURE);
     }
 
     //binding = associating socket w/ specific IP and port number.
     //like giving name to socket so OS knows what traffic to send to this specifc socket.    
-    if (( bind(server.socket, (struct sockaddr *)&server.address, sieof(server.address)) ) != 0){
-        perror("Failed to bind socket...\n");
-        exit(1);
+    if (( bind(server.socket, (struct sockaddr *)&server.address, sizeof(server.address)) ) != 0){
+        perror("Failed to bind socket");
+        exit(EXIT_FAILURE);
     }
 
     /*
@@ -42,8 +43,8 @@ struct Server server_constructor(int domain, int service, int protocol,
 
     //backlog = line of requests
     if ( listen(server.socket, server.backlog) != 0){
-        perror("Failed to listen...\n");
-        exit(1);
+        perror("Failed to listen");
+        exit(EXIT_FAILURE);
     }
 
     server.launch = launch;
